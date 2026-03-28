@@ -1,0 +1,29 @@
+{
+  "name": "userscript-to-electron",
+  "version": "1.0.0",
+  "description": "Convert Tampermonkey/Greasemonkey userscripts to Electron-compatible JavaScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node dist/test.js",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "userscript",
+    "tampermonkey",
+    "greasemonkey",
+    "electron",
+    "converter"
+  ],
+  "author": "XMOJ-Script-dev",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
