@@ -1,91 +1,64 @@
 # userscript-to-electron
 
-一个功能完整的 npm 包，可以将 Tampermonkey/Greasemonkey Userscript 转换成 Electron 可执行的 JavaScript。
+一个 npm 包，用于将 Tampermonkey 或 Greasemonkey userscript 转换为可在 Electron 中执行的 JavaScript。
 
-完全兼容 Tampermonkey 官方文档：https://www.tampermonkey.net/documentation.php
+本项目参考 Tampermonkey 官方文档并提供较完整的 GM API 兼容层。
 
-## 功能特性
+English documentation: [README.md](README.md)
 
-### ✨ 完整 API 支持
+## 功能概览
 
-**存储 API (`@grant GM_*`):**
+### GM API 支持
 
-- ✅ `GM_getValue` / `GM_setValue` - 单键存储
-- ✅ `GM_deleteValue` / `GM_listValues` - 删除和列举
-- ✅ `GM_setValues` / `GM_getValues` / `GM_deleteValues` - 批量操作 (v5.3+)
-- ✅ `GM_addValueChangeListener` / `GM_removeValueChangeListener` - 值变化事件
-
-**HTTP/网络 API:**
-
-- ✅ `GM_xmlhttpRequest` - 网络请求（使用 node-fetch）
-- ✅ `GM_download` - 文件下载
-- ✅ `GM_webRequest` - 网络拦截（实验性）
-
-**UI & 通知:**
-
-- ✅ `GM_notification` - 桌面通知（Electron Notification）
-
-# userscript-to-electron
-
-An npm package that converts Tampermonkey or Greasemonkey userscripts into Electron-executable JavaScript.
-
-This project tracks Tampermonkey documentation and implements a broad GM API compatibility layer.
-
-Chinese documentation: [README.zh-CN.md](README.zh-CN.md)
-
-## Features
-
-### Full GM API Coverage
-
-Storage APIs:
+存储 API:
 
 - `GM_getValue`, `GM_setValue`, `GM_deleteValue`, `GM_listValues`
 - `GM_setValues`, `GM_getValues`, `GM_deleteValues`
 - `GM_addValueChangeListener`, `GM_removeValueChangeListener`
 
-Network APIs:
+网络 API:
 
 - `GM_xmlhttpRequest`
 - `GM_download`
-- `GM_webRequest` (experimental)
+- `GM_webRequest`（实验性）
 
-UI APIs:
+UI API:
 
 - `GM_notification`
 - `GM_openInTab`
 - `GM_registerMenuCommand`, `GM_unregisterMenuCommand`
 
-DOM and style APIs:
+DOM 与样式 API:
 
 - `GM_addElement`
 - `GM_addStyle`
 
-Resources and clipboard APIs:
+资源与剪贴板 API:
 
 - `GM_getResourceText`, `GM_getResourceURL`
 - `GM_setClipboard`
 
-Tab and info APIs:
+标签页与信息 API:
 
 - `GM_getTab`, `GM_saveTab`, `GM_getTabs`
 - `GM_info`
 - `GM_log`
 
-Cookie and audio APIs:
+Cookie 与音频 API:
 
 - `GM_cookie.list`, `GM_cookie.set`, `GM_cookie.delete`
 - `GM_audio.setMute`, `GM_audio.getState`
 - `GM_audio.addStateChangeListener`, `GM_audio.removeStateChangeListener`
 
-Window globals:
+Window 全局:
 
 - `unsafeWindow`
 - `window.close`, `window.focus`
 - `window.onurlchange`
 
-### Metadata Header Support
+### 元数据头支持
 
-Supports common Tampermonkey headers including:
+支持常见 Tampermonkey 头部标签，包括:
 
 - `@name`, `@namespace`, `@version`, `@description`, `@author`
 - `@match`, `@include`, `@exclude`, `@connect`
@@ -93,15 +66,15 @@ Supports common Tampermonkey headers including:
 - `@run-at`, `@run-in`, `@sandbox`
 - `@updateURL`, `@downloadURL`, `@supportURL`, `@homepage`
 - `@noframes`, `@unwrap`, `@tag`, `@antifeature`
-- I18n variants like `@name:zh-CN`, `@description:en`
+- 国际化变体，如 `@name:zh-CN`, `@description:en`
 
-## Installation
+## 安装
 
 ```bash
 npm install userscript-to-electron
 ```
 
-## Quick Start
+## 快速开始
 
 ```js
 import UserscriptConverter from 'userscript-to-electron';
@@ -118,7 +91,7 @@ console.log(result.metadata.name);
 converter.save(result, 'output.js');
 ```
 
-## Electron Integration Example
+## Electron 集成示例
 
 ```js
 const { app, BrowserWindow, ipcMain } = require('electron');
@@ -139,7 +112,7 @@ ipcMain.handle('userscript:run', async (_event, scriptPath) => {
 });
 ```
 
-## API Overview
+## API 概览
 
 ### UserscriptConverter
 
@@ -147,7 +120,7 @@ ipcMain.handle('userscript:run', async (_event, scriptPath) => {
 new UserscriptConverter(options?: ConvertOptions)
 ```
 
-Methods:
+方法:
 
 - `convert(scriptContent: string): ConvertResult`
 - `convertFile(filePath: string): ConvertResult`
@@ -176,19 +149,19 @@ new GMPolyfill(options?: GMPolyfillOptions)
 generatePolyfill(grants: string[]): string
 ```
 
-## Persistence Behavior
+## 持久化行为
 
-- GM value storage is persisted to `${dataDir}/__gm_storage.json`.
-- Tab state is persisted to `${dataDir}/__gm_tabs.json`.
-- Downloads are saved to `${dataDir}/downloads/`.
+- GM 值存储持久化到 `${dataDir}/__gm_storage.json`。
+- 标签页状态持久化到 `${dataDir}/__gm_tabs.json`。
+- 下载文件保存到 `${dataDir}/downloads/`。
 
-## Known Limitations
+## 已知限制
 
-- DOM-dependent userscripts should run in an Electron renderer process or with jsdom.
-- Some browser-specific cookie and tab behavior may differ in Electron.
-- `GM_webRequest` behavior depends on integration context and is currently experimental.
+- 依赖 DOM 的脚本应在 Electron 渲染进程中运行，或结合 jsdom。
+- 某些浏览器专有的 Cookie 与标签页行为在 Electron 中可能有差异。
+- `GM_webRequest` 受运行上下文影响，目前为实验性支持。
 
-## Development
+## 开发
 
 ```bash
 npm run build
@@ -196,11 +169,11 @@ npm run dev
 npm test
 ```
 
-## License
+## 许可证
 
-MIT. See [LICENSE](LICENSE).
+MIT，详见 [LICENSE](LICENSE)。
 
-## References
+## 参考资料
 
-- [Tampermonkey Documentation](https://www.tampermonkey.net/documentation.php)
-- [Electron Documentation](https://www.electronjs.org/docs)
+- [Tampermonkey 官方文档](https://www.tampermonkey.net/documentation.php)
+- [Electron 文档](https://www.electronjs.org/docs)
