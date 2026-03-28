@@ -50,25 +50,127 @@ export class GMPolyfill {
    */
   generatePolyfill(grants: string[]): string {
     const polyfills: string[] = [];
-    const grantSet = new Set(grants);
+    const generatorNames = grants.map((grant) => this.grantToGeneratorName(grant));
+
+    if (grants.some((g) => (g || '').trim() === 'GM')) {
+      generatorNames.push(...this.getFullGMGeneratorNames());
+    }
+
+    const generatorSet = new Set(generatorNames);
 
     // Core initialization
     polyfills.push(this.generateCoreInit());
 
     // Conditional tab storage
-    if (grantSet.has('GM_getTab') || grantSet.has('GM_saveTab') || grantSet.has('GM_getTabs')) {
+    if (generatorSet.has('GM_getTab') || generatorSet.has('GM_saveTab') || generatorSet.has('GM_getTabs')) {
       polyfills.push(this.generateTabStorage());
     }
 
     // Generate all requested APIs
-    for (const grant of grants) {
+    const emitted = new Set<string>();
+    for (const grant of generatorNames) {
+      if (emitted.has(grant)) {
+        continue;
+      }
+      emitted.add(grant);
+
       const generator = (this as any)[`generate${grant}`];
       if (generator && typeof generator === 'function') {
         polyfills.push(generator.call(this));
       }
     }
 
+    // Add GM namespace bridge so GM.* style APIs are available.
+    if (this.shouldGenerateGMNamespace(grants)) {
+      polyfills.push(this.generateGMNamespaceBridge());
+    }
+
     return polyfills.join('\n\n');
+  }
+
+  private getFullGMGeneratorNames(): string[] {
+    return [
+      'GM_getValue',
+      'GM_setValue',
+      'GM_deleteValue',
+      'GM_listValues',
+      'GM_setValues',
+      'GM_getValues',
+      'GM_deleteValues',
+      'GM_addValueChangeListener',
+      'GM_removeValueChangeListener',
+      'GM_xmlhttpRequest',
+      'GM_download',
+      'GM_webRequest',
+      'GM_notification',
+      'GM_openInTab',
+      'GM_registerMenuCommand',
+      'GM_unregisterMenuCommand',
+      'GM_addElement',
+      'GM_addStyle',
+      'GM_getResourceText',
+      'GM_getResourceURL',
+      'GM_setClipboard',
+      'GM_getTab',
+      'GM_saveTab',
+      'GM_getTabs',
+      'GM_info',
+      'GM_log',
+      'GM_cookie',
+      'GM_audio',
+      'UnsafeWindow',
+      'WindowClose',
+      'WindowFocus',
+      'WindowOnUrlChange',
+    ];
+  }
+
+  private grantToGeneratorName(grant: string): string {
+    const g = (grant || '').trim();
+
+    switch (g) {
+      case 'unsafeWindow':
+        return 'UnsafeWindow';
+      case 'window.close':
+        return 'WindowClose';
+      case 'window.focus':
+        return 'WindowFocus';
+      case 'window.onurlchange':
+        return 'WindowOnUrlChange';
+      case 'GM.cookie':
+        return 'GM_cookie';
+      case 'GM.audio':
+        return 'GM_audio';
+      case 'GM.info':
+        return 'GM_info';
+      case 'GM.log':
+        return 'GM_log';
+      case 'GM.xmlHttpRequest':
+      case 'GM.xmlhttpRequest':
+      case 'GM_xmlHttpRequest':
+      case 'GM_xmlhttpRequest':
+        return 'GM_xmlhttpRequest';
+      case 'GM.getResourceUrl':
+      case 'GM.getResourceURL':
+      case 'GM_getResourceUrl':
+      case 'GM_getResourceURL':
+        return 'GM_getResourceURL';
+      default:
+        break;
+    }
+
+    if (g.startsWith('GM.')) {
+      return `GM_${g.slice(3)}`;
+    }
+
+    return g.replace(/[.-]/g, '_');
+  }
+
+  private shouldGenerateGMNamespace(grants: string[]): boolean {
+    return grants.some((grant) => {
+      const g = (grant || '').trim();
+      return g.startsWith('GM_') || g.startsWith('GM.') || g === 'GM' || g === 'GM_info';
+    });
   }
 
   // ===== CORE INITIALIZATION =====
@@ -731,6 +833,56 @@ const GM_info = {
 function GM_log(message) {
   console.log('[${this.scriptName}]', message);
 }
+`;
+  }
+
+  private generateGMNamespaceBridge(): string {
+    return `
+// GM namespace compatibility bridge (GM.* Promise-based APIs)
+const GM = globalThis.GM || {};
+
+if (typeof GM_getValue === 'function') GM.getValue = (key, defaultValue) => Promise.resolve(GM_getValue(key, defaultValue));
+if (typeof GM_setValue === 'function') GM.setValue = (key, value) => Promise.resolve(GM_setValue(key, value));
+if (typeof GM_deleteValue === 'function') GM.deleteValue = (key) => Promise.resolve(GM_deleteValue(key));
+if (typeof GM_listValues === 'function') GM.listValues = () => Promise.resolve(GM_listValues());
+if (typeof GM_setValues === 'function') GM.setValues = (values) => Promise.resolve(GM_setValues(values));
+if (typeof GM_getValues === 'function') GM.getValues = (keysOrDefaults) => Promise.resolve(GM_getValues(keysOrDefaults));
+if (typeof GM_deleteValues === 'function') GM.deleteValues = (keys) => Promise.resolve(GM_deleteValues(keys));
+if (typeof GM_addValueChangeListener === 'function') GM.addValueChangeListener = (key, callback) => Promise.resolve(GM_addValueChangeListener(key, callback));
+if (typeof GM_removeValueChangeListener === 'function') GM.removeValueChangeListener = (id) => Promise.resolve(GM_removeValueChangeListener(id));
+
+if (typeof GM_xmlhttpRequest === 'function') {
+  GM.xmlHttpRequest = (details) => GM_xmlhttpRequest(details);
+  GM.xmlhttpRequest = GM.xmlHttpRequest;
+}
+
+if (typeof GM_xmlhttpRequest === 'function' && typeof GM_xmlHttpRequest === 'undefined') {
+  var GM_xmlHttpRequest = GM_xmlhttpRequest;
+}
+
+if (typeof GM_download === 'function') GM.download = (detailsOrUrl, name) => Promise.resolve(GM_download(detailsOrUrl, name));
+if (typeof GM_webRequest === 'function') GM.webRequest = (rules, listener) => Promise.resolve(GM_webRequest(rules, listener));
+if (typeof GM_notification === 'function') GM.notification = (...args) => Promise.resolve(GM_notification(...args));
+if (typeof GM_openInTab === 'function') GM.openInTab = (...args) => Promise.resolve(GM_openInTab(...args));
+if (typeof GM_registerMenuCommand === 'function') GM.registerMenuCommand = (...args) => Promise.resolve(GM_registerMenuCommand(...args));
+if (typeof GM_unregisterMenuCommand === 'function') GM.unregisterMenuCommand = (...args) => Promise.resolve(GM_unregisterMenuCommand(...args));
+if (typeof GM_addElement === 'function') GM.addElement = (...args) => Promise.resolve(GM_addElement(...args));
+if (typeof GM_addStyle === 'function') GM.addStyle = (css) => Promise.resolve(GM_addStyle(css));
+if (typeof GM_getResourceText === 'function') GM.getResourceText = (name) => Promise.resolve(GM_getResourceText(name));
+if (typeof GM_getResourceURL === 'function') {
+  GM.getResourceUrl = (name) => Promise.resolve(GM_getResourceURL(name));
+  GM.getResourceURL = GM.getResourceUrl;
+}
+if (typeof GM_setClipboard === 'function') GM.setClipboard = (...args) => Promise.resolve(GM_setClipboard(...args));
+if (typeof GM_getTab === 'function') GM.getTab = (cb) => Promise.resolve(GM_getTab(cb));
+if (typeof GM_saveTab === 'function') GM.saveTab = (tab, cb) => Promise.resolve(GM_saveTab(tab, cb));
+if (typeof GM_getTabs === 'function') GM.getTabs = (cb) => Promise.resolve(GM_getTabs(cb));
+if (typeof GM_log === 'function') GM.log = (message) => Promise.resolve(GM_log(message));
+if (typeof GM_info !== 'undefined') GM.info = GM_info;
+if (typeof GM_cookie !== 'undefined') GM.cookie = GM_cookie;
+if (typeof GM_audio !== 'undefined') GM.audio = GM_audio;
+
+globalThis.GM = GM;
 `;
   }
 

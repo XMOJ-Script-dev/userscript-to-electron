@@ -45,6 +45,7 @@ export interface UserscriptMetadata {
   connect?: string[];
   antifeature?: Record<string, string>;
   tag?: string[];
+  webRequest?: string[];
   
   // Internationalization (i18n) variants
   nameI18n?: Record<string, string>;
@@ -79,6 +80,7 @@ export class MetadataParser {
       antifeature: {},
       nameI18n: {},
       descriptionI18n: {},
+      webRequest: [],
     };
 
     const lines = metadataBlock.split('\n');
@@ -154,7 +156,11 @@ export class MetadataParser {
 
         // Permissions
         case 'grant':
-          metadata.grant!.push(value.trim());
+          if (value.trim() === 'none') {
+            metadata.grant = [];
+          } else {
+            metadata.grant!.push(value.trim());
+          }
           break;
 
         // Dependencies
@@ -219,6 +225,9 @@ export class MetadataParser {
           break;
         case 'tag':
           metadata.tag!.push(value.trim());
+          break;
+        case 'webrequest':
+          metadata.webRequest!.push(value.trim());
           break;
       }
     }

@@ -10,6 +10,12 @@ English documentation: [README.md](README.md)
 
 ### GM API 支持
 
+兼容性说明:
+
+- 同时支持经典 `GM_*` 与现代 `GM.*` 两种调用风格。
+- 支持 `@grant GM`，会展开为完整 GM 命名空间桥接。
+- 支持 `GM.xmlHttpRequest` 与 `GM_xmlHttpRequest` 兼容别名。
+
 存储 API:
 
 - `GM_getValue`, `GM_setValue`, `GM_deleteValue`, `GM_listValues`

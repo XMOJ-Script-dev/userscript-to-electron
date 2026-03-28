@@ -1,32 +1,5 @@
 # userscript-to-electron
 
-一个功能完整的 npm 包，可以将 Tampermonkey/Greasemonkey Userscript 转换成 Electron 可执行的 JavaScript。
-
-完全兼容 Tampermonkey 官方文档：https://www.tampermonkey.net/documentation.php
-
-## 功能特性
-
-### ✨ 完整 API 支持
-
-**存储 API (`@grant GM_*`):**
-
-- ✅ `GM_getValue` / `GM_setValue` - 单键存储
-- ✅ `GM_deleteValue` / `GM_listValues` - 删除和列举
-- ✅ `GM_setValues` / `GM_getValues` / `GM_deleteValues` - 批量操作 (v5.3+)
-- ✅ `GM_addValueChangeListener` / `GM_removeValueChangeListener` - 值变化事件
-
-**HTTP/网络 API:**
-
-- ✅ `GM_xmlhttpRequest` - 网络请求（使用 node-fetch）
-- ✅ `GM_download` - 文件下载
-- ✅ `GM_webRequest` - 网络拦截（实验性）
-
-**UI & 通知:**
-
-- ✅ `GM_notification` - 桌面通知（Electron Notification）
-
-# userscript-to-electron
-
 An npm package that converts Tampermonkey or Greasemonkey userscripts into Electron-executable JavaScript.
 
 This project tracks Tampermonkey documentation and implements a broad GM API compatibility layer.
@@ -36,6 +9,12 @@ Chinese documentation: [README.zh-CN.md](README.zh-CN.md)
 ## Features
 
 ### Full GM API Coverage
+
+Compatibility notes:
+
+- Supports both classic `GM_*` and modern `GM.*` API styles.
+- Supports `@grant GM` and expands it to the full GM namespace bridge.
+- Supports `GM.xmlHttpRequest` and `GM_xmlHttpRequest` compatibility aliases.
 
 Storage APIs:
 
